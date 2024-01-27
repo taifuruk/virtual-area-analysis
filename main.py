@@ -1,4 +1,4 @@
-from src import datalist, adddata, chat, segment, env
+from src import datalist, adddata, chat, segment
 import streamlit as st
 import warnings
 

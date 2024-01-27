@@ -21,12 +21,18 @@ def page() -> None:
 
     # list.parquetを読み込む
     data_list = pd.read_parquet(LIST_FILE)
+    # 削除するデータのパスを保存するためのリスト
+    delete_paths = []
 
     # データ一覧を表示
     for index, row in data_list.iterrows():
         col1, col2 = st.columns([0.1, 0.9])
         with col1:
+            # チェックボックスのキーをデータのパスに設定
             delete = st.checkbox("削除", key=row['パス'])
+            if delete:
+                delete_paths.append(row['パス'])
+
         with col2:
             if row['データタイプ'] == 'CSV' or row['データタイプ'] == 'GeoJSON':
                 st.markdown(f"* {row['タイトル']} - {row['説明']} - 追加日:{row['アップロード日']}")
@@ -35,12 +41,19 @@ def page() -> None:
 
     # 選択されたデータの削除
     if st.button("選択したデータを削除"):
-        for index, row in data_list.iterrows():
-            if st.session_state[row['パス']]:
-                if st.session_state[row['データタイプ']] == 'CSV' or st.session_state[row['データタイプ']] == 'GeoJSON':
-                    os.remove(os.path.join(DATA_DIR, row['パス']))
-                data_list = data_list.drop(index)
+        for delete_path in delete_paths:
+            # ファイルの削除
+            if os.path.exists(os.path.join(DATA_DIR, delete_path)):
+                os.remove(os.path.join(DATA_DIR, delete_path))
+
+            # DataFrameから行を削除
+            data_list = data_list[data_list['パス'] != delete_path]
+
+        # 更新されたDataFrameを保存
         data_list.to_parquet(LIST_FILE)
+        # 削除後のリストを表示
+        st.write("削除完了")
+        st.rerun()
 
     def move2add_data():
         st.experimental_set_query_params(page="add_data")

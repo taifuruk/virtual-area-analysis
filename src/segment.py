@@ -304,7 +304,7 @@ def page() -> None:
             def images(prompt):
                 response = openai.images.generate(
                     model="dall-e-3",
-                    prompt="full color photo,japanese," + prompt,
+                    prompt=prompt,
                     size="1024x1024",
                     quality="standard",
                     n=1,
